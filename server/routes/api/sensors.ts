@@ -16,8 +16,11 @@ async function connect(){
 
 export const handler: Handlers = {
   GET: async (req: Request, ctx: HandlerContext) => {
-    const latest = await db.query('select * from sensors');
-    return Response(null, {status: 200, statusText:'Data recived'});
+    const latest = await db.query('select * from message limit 100');
+    return new Response(JSON.stringify(latest), {
+      status: 200, statusText:'Data sent', 
+      headers:{'content-type':'aplication/json'}
+    });
   },
 
   POST: async (req: Request, ctx: HandlerContext) => {
@@ -27,7 +30,8 @@ export const handler: Handlers = {
       let data = await req.json();
       let record = await db.create('message', {
         date: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
-        value: data
+        sensor_id: data['id'],
+        measured: data['humidity']
       });
       console.log(data);
       console.log(record);
