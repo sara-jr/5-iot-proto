@@ -16,8 +16,9 @@ async function connect(){
 
 export const handler: Handlers = {
   GET: async (req: Request, ctx: HandlerContext) => {
-    const latest = await db.query('select * from message limit 100');
-    return new Response(JSON.stringify(latest), {
+    const latest = await db.query('select * from message order by date limit 50');
+    
+    return new Response(JSON.stringify(latest[0]['result']), {
       status: 200, statusText:'Data sent', 
       headers:{'content-type':'aplication/json'}
     });
@@ -33,8 +34,6 @@ export const handler: Handlers = {
         sensor_id: data['id'],
         measured: data['humidity']
       });
-      console.log(data);
-      console.log(record);
     }
     catch(error){
       console.log(error);
