@@ -1,5 +1,6 @@
 #ifndef __DISTANCE_SENSOR_H__
 #define __DISTANCE_SENSOR_H__
+#include <Arduino.h>
 
 class DistanceSensor{
 private:
