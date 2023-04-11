@@ -2,9 +2,11 @@
 #define _VEHICLE_COUNTER_H_
 
 #include <HCSR04.h>
+#include <Arduino.h>
 
 class VehicleCounter{
 private:
+  HCSR04 _sensor;
   int _count;
   int _base_distance;
   int _min_vehicle_height;
