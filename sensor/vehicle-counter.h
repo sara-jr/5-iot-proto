@@ -1,18 +1,18 @@
 #ifndef _VEHICLE_COUNTER_H_
 #define _VEHICLE_COUNTER_H_
 
-#include <HCSR04.h>
+#include "ultrasonic-sensor.h"
 #include <Arduino.h>
 
 class VehicleCounter{
 private:
-  HCSR04 _sensor;
+  UltrasonicSensor _sensor;
   int _count;
   int _base_distance;
   int _min_vehicle_height;
   int _buffer[60];
 public:
-  VehicleCounter(int trigger, int echo, int min_vehicle_height);
+  VehicleCounter(int trigger=5, int echo=6, int min_vehicle_height=15);
   
   int get_count();
   void measure_base_distance();

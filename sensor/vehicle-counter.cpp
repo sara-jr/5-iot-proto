@@ -4,7 +4,7 @@ VehicleCounter::VehicleCounter(int trigger, int echo, int min_vehicle_height){
   _count = 0;
   _base_distance = 0;
   _min_vehicle_height = min_vehicle_height;
-  _sensor = HCSR04(trigger, echo);
+  _sensor = UltrasonicSensor(trigger, echo);
 }
 
 int VehicleCounter::get_count(){
