@@ -4,6 +4,7 @@
 
 #include <string>
 #include <sstream>
+#include "vehicle-counter.h"
 
 const int UPDATE_TIME = 5000; //5 segundos
 
@@ -11,10 +12,15 @@ String ssid;
 String password;
 String server;
 String device_id;
+int cycle_counter;
+int trigger_pin;
+int echo_pin;
+int min_distance;
+std::stringstream stream;
 
 HTTPClient http = HTTPClient();
 WiFiClient wifi = WiFiClient();
-
+VehicleCounter sensor;
 
 void connect_wifi(){
   Serial.println("CONECTING");
@@ -62,11 +68,23 @@ void configure_from_serial(){
     return;
   }
 
-  const char* id = config_doc["id"];
-  const char* new_ssid = config_doc["ssid"];
-  const char* new_password = config_doc["password"];
-  const char* new_server = config_doc["server"];
+  const char *id = config_doc["id"],
+  *new_ssid = config_doc["ssid"],
+  *new_password = config_doc["password"],
+  *new_distance = config_doc["distance"],
+  *new_trigger = config_doc["trigger"],
+  *new_echo = config_doc["echo"],
+  *new_server = config_doc["server"];
+
   bool network_changed = false;
+  int trigger, echo, distance;
+  if(new_trigger != nullptr){
+    trigger = std::stoi(new_trigger);
+  }
+
+  if(new_echo != nullptr){
+    echo = std::stoi(new_echo);
+  }
 
   if(id != nullptr){
     device_id = id;
@@ -90,15 +108,20 @@ void configure_from_serial(){
     wifi.stop();
     connect_wifi();
   }
+
+  if(trigger != trigger_pin || echo != echo_pin || distance != min_distance){
+    sensor = VehicleCounter(trigger, echo, distance);
+    trigger_pin = trigger;
+    echo_pin = echo;
+    min_distance = distance;
+  }
 }
 
-
-int send_JSON(String name, String value){
+int send_JSON(){
   char buffer[300];
   int response;
-  std::stringstream stream;
   stream << '{' 
-    << '"' << name.c_str() << "\":" << value.c_str() << ','
+    << "\"count\":" << sensor.get_count() << ','
     << "\"id\":" << '"' << device_id.c_str() << '"'
     << '}';
   stream.getline(buffer, 200);
@@ -109,25 +132,35 @@ int send_JSON(String name, String value){
   return response;
 }
 
-void loop() {
+bool transmit_data() {
+  if(WiFi.status() != WL_CONNECTED){
+    return false;
+  }
+
+  Serial.println("SENDING DATA");
+  int response_code = send_JSON();
+  if(response_code == HTTP_CODE_OK){
+    Serial.println("OK");
+    return true;
+  }
+  Serial.print("ERROR (");
+  Serial.print(response_code);
+  Serial.print(") ");
+  Serial.println(http.errorToString(response_code));
+  delay(UPDATE_TIME);
+  return false;
+}
+
+void loop(){
   if(Serial.peek() != -1){
     configure_from_serial();
   }
 
-  if(WiFi.status() != WL_CONNECTED){
+  if(cycle_counter == 10){
+    transmit_data();
+    cycle_counter = 0;
     return;
   }
-
-  Serial.println("SENDING DATA");
-  int response_code = send_JSON("humidity", String(analogRead(A0)));
-  if(response_code == HTTP_CODE_OK){
-    Serial.println("OK");
-  }
-  else{
-    Serial.print("ERROR (");
-    Serial.print(response_code);
-    Serial.print(") ");
-    Serial.println(http.errorToString(response_code));
-  }
-  delay(UPDATE_TIME);
+  sensor.measure();
+  cycle_counter ++;  
 }
