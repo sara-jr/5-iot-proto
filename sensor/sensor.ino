@@ -50,7 +50,6 @@ void setup() {
   Serial.print("# at ");
   Serial.print(server.c_str());
   configure_from_serial();
-  pinMode(A0, INPUT);
 }
 
 /* Lee en formato JSON las opciones desde el Serial
@@ -111,6 +110,7 @@ void configure_from_serial(){
 
   if(trigger != trigger_pin || echo != echo_pin || distance != min_distance){
     sensor = VehicleCounter(trigger, echo, distance);
+    sensor.configure();
     trigger_pin = trigger;
     echo_pin = echo;
     min_distance = distance;

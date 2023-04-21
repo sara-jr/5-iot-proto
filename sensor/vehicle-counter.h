@@ -15,6 +15,7 @@ public:
   VehicleCounter(int trigger=5, int echo=6, int min_vehicle_height=15);
   
   int get_count();
+  void configure();
   void measure_base_distance();
   void measure();
   void reset_count();
