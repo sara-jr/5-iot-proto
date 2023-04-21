@@ -13,8 +13,8 @@ String password;
 String server;
 String device_id;
 int cycle_counter;
-int trigger_pin;
-int echo_pin;
+int trigger_pin = -1;
+int echo_pin = -1;
 int min_distance;
 std::stringstream stream;
 
@@ -43,13 +43,13 @@ void setup() {
   while(Serial.peek() == -1){ //Mientras no haya datos
     delay(500);
   }
-  Serial.print("Data recived: NET");
+  configure_from_serial();
+  Serial.print("Data recived: NET ");
   Serial.print(ssid.c_str());
   Serial.print(" #");
   Serial.print(password.c_str());
   Serial.print("# at ");
   Serial.print(server.c_str());
-  configure_from_serial();
 }
 
 /* Lee en formato JSON las opciones desde el Serial
@@ -111,6 +111,7 @@ void configure_from_serial(){
   if(trigger != trigger_pin || echo != echo_pin || distance != min_distance){
     sensor = VehicleCounter(trigger, echo, distance);
     sensor.configure();
+    sensor.measure_base_distance();
     trigger_pin = trigger;
     echo_pin = echo;
     min_distance = distance;
@@ -121,9 +122,9 @@ int send_JSON(){
   char buffer[300];
   int response;
   stream << '{' 
-    << "\"count\":" << sensor.get_count() << ','
-    << "\"id\":" << '"' << device_id.c_str() << '"'
-    << '}';
+   << "\"count\":" << sensor.get_count() << ','
+   << "\"id\":" << '"' << device_id.c_str() << '"'
+   << '}';
   stream.getline(buffer, 200);
   http.begin(wifi, server);
   http.addHeader("Content-Type", "application/json");
@@ -152,15 +153,6 @@ bool transmit_data() {
 }
 
 void loop(){
-  if(Serial.peek() != -1){
-    configure_from_serial();
-  }
-
-  if(cycle_counter == 10){
-    transmit_data();
-    cycle_counter = 0;
-    return;
-  }
   sensor.measure();
-  cycle_counter ++;  
+  Serial.println(sensor.get_count());
 }

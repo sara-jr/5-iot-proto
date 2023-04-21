@@ -26,7 +26,7 @@ void VehicleCounter::measure_base_distance(){
 void VehicleCounter::measure(){
   int high_count = 0;
   bool is_in_low = true;
-  for(int i = 0; i < 16; i++){
+  for(int i = 0; i < 8; i++){
     if(_sensor.distanceCm() > _min_vehicle_height){
       if(is_in_low){ //Contar solamente cuando se detecta un objeto que transiciona de la altura minima
         high_count ++;
@@ -36,7 +36,7 @@ void VehicleCounter::measure(){
     else{
       is_in_low = true;
     }
-    delay(60);
+    delay(50);
   }
   _count += high_count;
 }
